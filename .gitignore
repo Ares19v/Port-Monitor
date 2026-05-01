@@ -1,0 +1,47 @@
+# ─── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.spec
+venv/
+.venv/
+env/
+.env
+*.db
+*.sqlite3
+
+# ─── Node / Frontend ────────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+.npm/
+
+# ─── PyInstaller ────────────────────────────────────────────────────────────────
+backend/build/
+backend/dist/
+backend/*.spec
+
+# ─── OS / IDE ───────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ─── Secrets / Env ──────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Logs ───────────────────────────────────────────────────────────────────────
+*.log
+logs/
