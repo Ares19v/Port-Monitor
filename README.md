@@ -5,7 +5,7 @@
 <p><strong>A Windows system orchestration suite — real-time port monitoring, network security analysis, hardware telemetry, and developer workspace management.</strong></p>
 
 [![CI](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://github.com/Ares19v/Port-Monitor)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
@@ -117,6 +117,7 @@ Output: `backend/dist/main/main.exe`
 | Build Tool | [Vite 8](https://vitejs.dev/) |
 | Packaging | [PyInstaller](https://pyinstaller.org/) |
 
-## License
-
-[MIT](LICENSE) © 2025 Devansh Tyagi
+---
+<p align="center">
+  Made by Devansh Tyagi @ 2026
+</p>
