@@ -48,6 +48,17 @@ def init_db():
                 message TEXT
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS geoip_cache (
+                ip TEXT PRIMARY KEY,
+                country TEXT,
+                city TEXT,
+                isp TEXT,
+                is_proxy INTEGER,
+                is_hosting INTEGER,
+                updated_at TEXT
+            )
+        ''')
         conn.commit()
 
 def insert_snapshot(data: dict):
@@ -97,3 +108,38 @@ def get_recent_alerts(limit=50):
             'SELECT * FROM alerts ORDER BY timestamp DESC LIMIT ?', (limit,)
         ).fetchall()
     return [dict(r) for r in rows]
+
+def get_cached_geoip(ip: str):
+    try:
+        with get_conn() as conn:
+            row = conn.execute('SELECT * FROM geoip_cache WHERE ip = ?', (ip,)).fetchone()
+            if row:
+                return {
+                    'country': row['country'],
+                    'city': row['city'],
+                    'isp': row['isp'],
+                    'is_proxy': bool(row['is_proxy']),
+                    'is_hosting': bool(row['is_hosting'])
+                }
+    except Exception:
+        pass
+    return None
+
+def save_cached_geoip(ip: str, data: dict):
+    try:
+        with get_conn() as conn:
+            conn.execute('''
+                INSERT OR REPLACE INTO geoip_cache (ip, country, city, isp, is_proxy, is_hosting, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                ip,
+                data.get('country', 'Unknown'),
+                data.get('city', 'Unknown'),
+                data.get('isp', 'Unknown'),
+                1 if data.get('is_proxy') else 0,
+                1 if data.get('is_hosting') else 0,
+                dt.datetime.utcnow().isoformat()
+            ))
+            conn.commit()
+    except Exception:
+        pass

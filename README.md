@@ -2,122 +2,131 @@
 
 <h1>⬡ Port-Monitor</h1>
 
-<p><strong>A Windows system orchestration suite — real-time port monitoring, network security analysis, hardware telemetry, and developer workspace management.</strong></p>
-
-[![CI](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml)
+<p><strong>A modern Windows system orchestration suite &amp; developer cockpit — real-time socket monitoring, project detection, network security mapping, and live hardware telemetry.</strong></p>
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://github.com/Ares19v/Port-Monitor)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 
 </div>
 
 ---
 
-## Overview
+## ⚡ Overview
 
-**Port-Monitor** is a standalone Windows desktop application that gives you complete visibility and control over your system. Built on a FastAPI backend with a React/Tailwind UI rendered inside a native webview window, it monitors everything from live CPU/RAM/GPU telemetry to active network connections and developer project workspaces — all in one place.
+**Port-Monitor** is an all-in-one Windows system control center designed specifically for developers and power users. Built on a **FastAPI** backend and a **React 19 / Tailwind CSS** interface, it provides instant socket diagnostics, project codebase detection, live hardware performance streaming, and network risk assessments.
 
-## Features
+---
 
-| Module | Description |
-|---|---|
-| 📊 **Performance Dashboard** | Real-time CPU, RAM, Disk I/O, and Network charts with SQLite history |
-| 🔌 **Active Ports** | View and kill processes bound to any port |
-| 🔒 **Network Security Map** | GeoIP lookup, VPN/proxy detection, and risk scoring for all active connections |
-| 🖥️ **Hardware Diagnostics** | CPU, GPU (NVIDIA), and memory hardware details via WMI |
-| 🧩 **Process Manager** | Full system process list with memory and CPU usage |
-| 🔁 **Port Forwarding** | Create and manage TCP port forwarding rules at runtime |
-| 🚀 **Workspace Orchestrator** | Launch and manage multi-command developer workspaces |
-| 📁 **Project Scanner** | Scan a directory tree and one-click launch any project |
-| ⚡ **Startup Manager** | View and remove Windows startup registry entries |
-| 🔔 **Alerts & Reports** | Configurable CPU/RAM threshold alerts with Windows toast notifications |
+## 🌟 Key Features
 
-## Architecture
+### 🔍 1. Global Command Palette (`Ctrl + K`)
+- Press **`Ctrl + K`** (or `/`) from anywhere in the app to search ports, processes, and tools.
+- Instant 1-click **Kill Port** or **End Task** directly from search results.
+- **Smart Port Scanner**: Type any port number (e.g. `3000`) and instantly scan for the next available, conflict-free port (e.g. `3001`) with a copyable `PORT=3001` command.
+
+### 📁 2. Codebase & Project Attribution
+- Automatically inspects the working directory (`cwd`) and launch command (`cmdline`) of active servers.
+- Labels ports with your top-level project name (e.g., `Delphi`, `Port-Monitor`, `Echo`) and provides a full directory path tooltip.
+
+### 🔌 3. Active Ports & Dev Conflict Resolver
+- Real-time table of all open TCP/UDP sockets.
+- Dev service signatures: automatically categorizes `Vite`, `Next.js`, `FastAPI`, `Django`, `PostgreSQL`, `Redis`, `MongoDB`, etc.
+- **Kill All Dev Ports**: Batch-kill orphaned processes occupying standard development ports (`3000`, `5173`, `8000`, `5000`, `8080`).
+- Process hierarchy: inspect parent processes, child worker threads, and memory footprint.
+
+### 📊 4. Real-Time Telemetry Dashboard
+- **WebSocket Streaming**: Sub-second live updates without HTTP polling.
+- **Per-Core CPU Load Meters**: Live visualizer across all logical CPU cores.
+- **Top Resource Consumers**: Real-time list of top 5 CPU and top 5 RAM consumers with 1-click terminate actions.
+- **GPU Telemetry**: NVIDIA GPU core utilization, VRAM allocation, and thermal monitoring.
+- **SQLite History**: Historical performance data with 1h, 6h, and 24h lookup ranges.
+
+### 🔒 5. Concurrent Network Security & Threat Map
+- Non-blocking parallel GeoIP resolution using a multi-threaded pool and SQLite cache.
+- Identifies external endpoints, VPNs, anonymous proxies, and flagged ports.
+
+### 🖥️ 6. Ultra-Fast Hardware Diagnostics
+- Optimized WMI queries delivering CPU, Display/GPU, physical Network link speeds, and power states in **< 0.3s**.
+
+### 🚀 7. Workspace Orchestrator & Project Scanner
+- Scan any directory tree for developer projects and launch multi-service stacks (backend + frontend + DB) with a single click.
+
+---
+
+## 🏗️ Architecture
 
 ```
 Port-Monitor/
-├── backend/            # FastAPI (Python) — system APIs
-│   ├── main.py         # Entry point (uvicorn + pywebview)
-│   ├── server.py       # All API routes
-│   ├── core.py         # Port & process management
-│   ├── performance.py  # Live telemetry + DB persistence
-│   ├── network_security.py  # GeoIP + connection risk analysis
-│   ├── hardware.py     # WMI hardware diagnostics
-│   ├── orchestrator.py # Workspace runner
-│   ├── alerts.py       # Threshold alerts + toast notifications
-│   └── database.py     # SQLite history store
-└── frontend/           # React + Tailwind (Vite)
+├── backend/                  # FastAPI (Python 3.11+)
+│   ├── server.py             # REST API & WebSocket telemetry endpoints
+│   ├── core.py               # Socket inspection, project detection & process control
+│   ├── performance.py        # Live CPU/RAM/GPU/Disk telemetry & top consumers
+│   ├── network_security.py   # Multi-threaded GeoIP & socket risk engine
+│   ├── hardware.py           # Optimized WMI hardware queries
+│   ├── database.py           # SQLite persistence store & GeoIP cache
+│   ├── orchestrator.py       # Multi-process workspace runner
+│   ├── project_scanner.py    # Local directory codebase discovery
+│   └── alerts.py             # System thresholds & Windows toast alerts
+└── frontend/                 # React 19 + Tailwind CSS (Vite 8)
     └── src/
-        └── components/ # 10 UI panel components
+        ├── App.jsx           # Sidebar layout & global routing
+        └── components/       # 11 Modular UI panels + Command Palette
 ```
 
-## Getting Started
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Windows 10/11
+- Windows 10 / 11
 - [Python 3.11+](https://www.python.org/downloads/)
 - [Node.js 20+](https://nodejs.org/)
 
-### Option 1 — Install & Run Scripts (Recommended)
+### Quick Start
 
 ```bat
-# 1. Install all dependencies
+# 1. Install dependencies
 INSTALL.bat
 
-# 2. Run the application (packaged desktop app)
+# 2. Run the application
 Run_Project.bat
 ```
 
-### Option 2 — Docker (Web UI only)
+### Manual Development Mode
 
 ```bash
-docker-compose up --build
-```
-> Access the UI at `http://localhost:3000`. Note: Windows-specific features (WMI, registry, toast alerts) require the native desktop app.
-
-### Option 3 — Manual Dev Mode
-
-```bash
-# Backend
+# Terminal 1: Backend Server
 cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
 python -m uvicorn server:app --reload --port 8000
 
-# Frontend (separate terminal)
+# Terminal 2: Frontend Dev Server
 cd frontend
 npm install
 npm run dev
 ```
 
-## Building the Executable
-
-```bat
-cd backend
-venv\Scripts\python.exe -m PyInstaller --noconfirm --onedir --windowed ^
-  --add-data "static;static" ^
-  --collect-all requests --collect-all winotify ^
-  main.py
-```
-Output: `backend/dist/main/main.exe`
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Desktop Shell | [pywebview](https://pywebview.app/) |
-| Backend | [FastAPI](https://fastapi.tiangolo.com/) + [Uvicorn](https://www.uvicorn.org/) |
-| System APIs | [psutil](https://pypi.org/project/psutil/), [WMI](https://pypi.org/project/WMI/), [pywin32](https://pypi.org/project/pywin32/) |
-| Database | SQLite (built-in) |
-| Frontend | [React 19](https://react.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) |
-| Charts | [Recharts](https://recharts.org/) |
-| Icons | [Lucide React](https://lucide.dev/) |
-| Build Tool | [Vite 8](https://vitejs.dev/) |
-| Packaging | [PyInstaller](https://pyinstaller.org/) |
+* **Frontend UI:** `http://localhost:5173` or `http://127.0.0.1:8000`
+* **Interactive API Documentation:** `http://127.0.0.1:8000/docs`
 
 ---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|---|---|
+| **Backend Framework** | [FastAPI](https://fastapi.tiangolo.com/) + [Uvicorn](https://www.uvicorn.org/) |
+| **System APIs** | [psutil](https://pypi.org/project/psutil/), [WMI](https://pypi.org/project/WMI/), [pywin32](https://pypi.org/project/pywin32/) |
+| **Database** | SQLite (built-in) |
+| **Frontend Framework** | [React 19](https://react.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) |
+| **Charts** | [Recharts](https://recharts.org/) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
+| **Build Tool** | [Vite 8](https://vitejs.dev/) |
+
+---
+
 <p align="center">
-  Made by Devansh Tyagi @ 2026
+  Developed by Devansh Tyagi @ 2026
 </p>

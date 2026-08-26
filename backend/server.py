@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
@@ -11,15 +11,11 @@ import network_security, project_scanner, startup_manager, alerts, database, rep
 # Init DB on startup
 database.init_db()
 
-app = FastAPI(title="Port-Monitor API")
+app = FastAPI(title="Port-Monitor Core API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",  # Docker / Nginx
-        "http://127.0.0.1:8000", # pywebview packaged app
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,22 +23,38 @@ app.add_middleware(
 
 # ── Ports ──────────────────────────────────────────────────────────────────────
 @app.get("/api/ports", response_model=List[Dict[str, Any]])
-def get_ports(): return core.get_active_ports()
+def get_ports():
+    return core.get_active_ports()
+
+@app.get("/api/ports/next-available")
+def get_next_free_port(start: int = Query(3000, ge=1024, le=65535)):
+    port = core.get_next_available_port(start)
+    return {"success": True, "start_port": start, "next_available_port": port}
 
 @app.post("/api/process/{pid}/kill")
 def kill_process(pid: int):
     result = core.kill_process_by_pid(pid)
-    if not result["success"]: raise HTTPException(status_code=400, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
     return result
+
+class BatchKillRequest(BaseModel):
+    pids: List[int]
+
+@app.post("/api/processes/kill-multiple")
+def kill_multiple(req: BatchKillRequest):
+    return core.kill_multiple_processes(req.pids)
 
 @app.get("/api/process/{pid}")
 def get_process_info(pid: int):
     result = core.get_process_details(pid)
-    if not result["success"]: raise HTTPException(status_code=404, detail=result.get("message"))
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result.get("message"))
     return result
 
 @app.get("/api/health")
-def health_check(): return {"status": "ok"}
+def health_check():
+    return {"status": "ok", "version": "2.0.0"}
 
 # ── Forwarding ─────────────────────────────────────────────────────────────────
 class ForwardRule(BaseModel):
@@ -50,46 +62,72 @@ class ForwardRule(BaseModel):
     target_port: int
 
 @app.get("/api/forward")
-def get_forward_rules(): return forwarder.get_active_rules()
+def get_forward_rules():
+    return forwarder.get_active_rules()
 
 @app.post("/api/forward")
 def start_forwarding(rule: ForwardRule):
     result = forwarder.start_forward(rule.source_port, rule.target_port)
-    if not result["success"]: raise HTTPException(status_code=400, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
     return result
 
 @app.delete("/api/forward/{source_port}")
 def stop_forwarding(source_port: int):
     result = forwarder.stop_forward(source_port)
-    if not result["success"]: raise HTTPException(status_code=400, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
     return result
 
 # ── Hardware ────────────────────────────────────────────────────────────────────
 @app.get("/api/hardware")
 def get_hardware_info():
     result = hardware.get_hardware_diagnostics()
-    if not result["success"]: raise HTTPException(status_code=500, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["message"])
     return result
 
 # ── Processes ───────────────────────────────────────────────────────────────────
 @app.get("/api/processes")
-def get_system_processes():
-    result = core.get_all_processes()
-    if not result["success"]: raise HTTPException(status_code=500, detail=result["message"])
+def get_system_processes(limit: int = Query(150, ge=10, le=500)):
+    result = core.get_all_processes(limit=limit)
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["message"])
     return result
 
 # ── Performance ─────────────────────────────────────────────────────────────────
 @app.get("/api/performance/live")
 def get_live_performance():
     result = performance.get_live_performance()
-    if not result["success"]: raise HTTPException(status_code=500, detail="Performance fetch failed")
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail="Performance fetch failed")
     return result
 
 @app.get("/api/performance/history")
 def get_performance_history(hours: int = 1):
     return {"success": True, "snapshots": database.get_history(hours=hours)}
 
-# ── WebSocket real-time feed ────────────────────────────────────────────────────
+# ── WebSocket real-time unified telemetry feed ──────────────────────────────────
+@app.websocket("/ws/telemetry")
+async def ws_telemetry(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            perf = performance.get_live_performance()
+            ports = core.get_active_ports()
+            payload = {
+                "type": "telemetry",
+                "performance": perf,
+                "ports_count": len(ports),
+                "ports": ports[:25],
+            }
+            await websocket.send_text(json.dumps(payload))
+            await asyncio.sleep(1.0)
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
+
 @app.websocket("/ws/performance")
 async def ws_performance(websocket: WebSocket):
     await websocket.accept()
@@ -97,7 +135,7 @@ async def ws_performance(websocket: WebSocket):
         while True:
             data = performance.get_live_performance()
             await websocket.send_text(json.dumps(data))
-            await asyncio.sleep(2)
+            await asyncio.sleep(1.5)
     except WebSocketDisconnect:
         pass
     except Exception:
@@ -110,29 +148,34 @@ class WorkspaceRequest(BaseModel):
     cwd: Optional[str] = None
 
 @app.get("/api/workspace")
-def get_workspaces(): return orchestrator.runner.get_workspaces()
+def get_workspaces():
+    return orchestrator.runner.get_workspaces()
 
 @app.post("/api/workspace")
 def start_workspace(req: WorkspaceRequest):
     result = orchestrator.runner.start_workspace(req.name, req.commands, req.cwd)
-    if not result["success"]: raise HTTPException(status_code=500, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["message"])
     return result
 
 @app.delete("/api/workspace/{ws_id}")
 def stop_workspace(ws_id: str):
     result = orchestrator.runner.stop_workspace(ws_id)
-    if not result["success"]: raise HTTPException(status_code=404, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["message"])
     return result
 
 @app.get("/api/workspace/{ws_id}/logs")
 def get_workspace_logs(ws_id: str):
     result = orchestrator.runner.get_logs(ws_id)
-    if not result["success"]: raise HTTPException(status_code=404, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["message"])
     return result
 
 # ── Network Security ─────────────────────────────────────────────────────────────
 @app.get("/api/network/security")
-def get_network_security(): return network_security.get_network_security()
+def get_network_security():
+    return network_security.get_network_security()
 
 # ── Project Scanner ─────────────────────────────────────────────────────────────
 @app.get("/api/projects/scan")
@@ -141,7 +184,8 @@ def scan_projects(path: str = os.path.expanduser("~/Desktop/Projects")):
 
 # ── Startup Manager ─────────────────────────────────────────────────────────────
 @app.get("/api/startup")
-def get_startup(): return startup_manager.get_startup_programs()
+def get_startup():
+    return startup_manager.get_startup_programs()
 
 class StartupDeleteRequest(BaseModel):
     name: str
@@ -151,15 +195,18 @@ class StartupDeleteRequest(BaseModel):
 @app.delete("/api/startup")
 def delete_startup(req: StartupDeleteRequest):
     result = startup_manager.disable_startup(req.name, req.hive, req.key_path)
-    if not result["success"]: raise HTTPException(status_code=400, detail=result["message"])
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
     return result
 
 # ── Alerts ───────────────────────────────────────────────────────────────────────
 @app.get("/api/alerts")
-def get_alerts(): return {"success": True, "alerts": database.get_recent_alerts(limit=50)}
+def get_alerts():
+    return {"success": True, "alerts": database.get_recent_alerts(limit=50)}
 
 @app.get("/api/alerts/thresholds")
-def get_thresholds(): return {"success": True, "thresholds": alerts.get_thresholds()}
+def get_thresholds():
+    return {"success": True, "thresholds": alerts.get_thresholds()}
 
 class ThresholdUpdate(BaseModel):
     cpu_percent: Optional[float] = None
@@ -185,12 +232,15 @@ def get_resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-static_path  = get_resource_path("static")
-assets_path  = os.path.join(static_path, "assets")
-index_path   = os.path.join(static_path, "index.html")
+static_path = get_resource_path("static")
+assets_path = os.path.join(static_path, "assets")
+index_path = os.path.join(static_path, "index.html")
 
-app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+if os.path.exists(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
 @app.get("/{full_path:path}")
 def serve_react_app(full_path: str):
-    return FileResponse(index_path)
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return HTMLResponse("<h2>Port-Monitor Backend running. Run frontend with <code>npm run dev</code></h2>")
