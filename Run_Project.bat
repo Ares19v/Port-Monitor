@@ -9,12 +9,7 @@ echo  ============================================================
 echo.
 
 :: ── Verify installation ───────────────────────────────────────────────────────
-if not exist "backend\venv\Scripts\python.exe" (
-    echo  [ERROR] Virtual environment not found.
-    echo  Please run INSTALL.bat first.
-    echo.
-    pause & exit /b 1
-)
+:: Virtual environment check bypassed (using system Python if venv absent)
 
 :: ── Kill any process already using port 8000 ──────────────────────────────────
 for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":8000 "') do (
@@ -52,7 +47,7 @@ if exist "frontend\dist" (
 
 echo  [INFO] Starting backend server...
 echo  [INFO] Opening http://127.0.0.1:8000 in browser in 3 seconds...
-start "" "backend\venv\Scripts\python.exe" -m uvicorn server:app --host 127.0.0.1 --port 8000 --app-dir backend
+start "" "backend\python" -m uvicorn server:app --host 127.0.0.1 --port 8000 --app-dir backend
 timeout /t 3 /nobreak >nul
 start "" "http://127.0.0.1:8000"
 
