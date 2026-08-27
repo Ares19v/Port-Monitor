@@ -5,7 +5,7 @@
 
 [![CI](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml)
 
-<p><strong>A modern Windows system orchestration suite &amp; developer cockpit — real-time socket monitoring, project detection, network security mapping, and live hardware telemetry.</strong></p>
+<p><strong>A modern Windows system orchestration suite & developer cockpit — real-time socket monitoring, project detection, network security mapping, and live hardware telemetry.</strong></p>
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://github.com/Ares19v/Port-Monitor)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
@@ -133,3 +133,9 @@ npm run dev
 <p align="center">
   Developed by Devansh Tyagi @ 2026
 </p>
+
+---
+
+© 2025 Devansh Tyagi (Ares19v). All Rights Reserved.
+
+Unauthorized copying, modification, distribution, or use of this project or any of its components, in whole or in part, without explicit written permission from the author is strictly prohibited.
