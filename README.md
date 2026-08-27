@@ -2,6 +2,9 @@
 
 <h1>⬡ Port-Monitor</h1>
 
+
+[![CI](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/Ares19v/Port-Monitor/actions/workflows/ci.yml)
+
 <p><strong>A modern Windows system orchestration suite &amp; developer cockpit — real-time socket monitoring, project detection, network security mapping, and live hardware telemetry.</strong></p>
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://github.com/Ares19v/Port-Monitor)
