@@ -130,10 +130,4 @@ npm run dev
 
 ---
 
-<p align="center">
-  Developed by Devansh Tyagi @ 2026
-</p>
-
----
-
 © 2025 Devansh Tyagi (Ares19v). All Rights Reserved.
