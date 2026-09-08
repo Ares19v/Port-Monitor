@@ -23,6 +23,16 @@
 
 ---
 
+## 🖥️ System Cockpit & Telemetry Interface
+
+<p align="center">
+  <img src="assets/PortMonitor_System_Cockpit.png" alt="Port Monitor Real-Time Telemetry Cockpit" width="100%" style="border-radius: 8px; border: 1px solid #30363d;" />
+  <br>
+  <em>Port-Monitor Telemetry Cockpit: Real-time WebSocket feed displaying 24-core CPU distribution (6.4%), RAM utilization (64.0%), network bandwidth graphs, and top process consumer rankings.</em>
+</p>
+
+---
+
 ## 🌟 Key Features
 
 ### 🔍 1. Global Command Palette (`Ctrl + K`)
